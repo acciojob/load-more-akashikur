@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./../styles/App.css";
 
 const items = [
@@ -34,45 +34,22 @@ const items = [
   "Item 30",
 ];
 
+const ITEMS_PER_PAGE = 10; // Number of items to display per page
+
 const App = () => {
-  const itemsPerPage = 5;
   const [visibleItems, setVisibleItems] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const observer = useRef(null);
 
-  useEffect(() => {
-    const lastIndex = currentPage * itemsPerPage;
-    const newVisibleItems = items.slice(0, lastIndex);
+  const loadMoreItems = () => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const newVisibleItems = items.slice(0, endIndex);
     setVisibleItems(newVisibleItems);
-  }, [currentPage]);
+  };
 
-  useEffect(() => {
-    const options = {
-      root: null,
-      rootMargin: "0px",
-      threshold: 1.0,
-    };
-
-    observer.current = new IntersectionObserver(handleObserver, options);
-
-    if (observer && observer.current) {
-      observer.current.observe(document.getElementById("observer"));
-    }
-
-    return () => {
-      if (observer && observer.current) {
-        observer.current.disconnect();
-      }
-    };
-  }, []);
-
-  const handleObserver = (entries) => {
-    const target = entries[0];
-
-    if (target.isIntersecting) {
-      setCurrentPage((prevPage) => prevPage + 1);
-      observer.current.unobserve(target.target);
-    }
+  const handleLoadMore = () => {
+    setCurrentPage((prevPage) => prevPage + 1);
+    loadMoreItems();
   };
 
   return (
@@ -82,7 +59,7 @@ const App = () => {
           <li key={index}>{item}</li>
         ))}
       </ul>
-      <div id="observer" style={{ height: "1px" }}></div>
+      <button onClick={handleLoadMore}>Load More</button>
     </div>
   );
 };
