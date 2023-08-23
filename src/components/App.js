@@ -1,6 +1,5 @@
-
-import React from "react";
-import './../styles/App.css';
+import React, { useEffect, useRef, useState } from "react";
+import "./../styles/App.css";
 
 const items = [
   "Item 1",
@@ -32,15 +31,60 @@ const items = [
   "Item 27",
   "Item 28",
   "Item 29",
-  "Item 30"
+  "Item 30",
 ];
 
 const App = () => {
+  const itemsPerPage = 5;
+  const [visibleItems, setVisibleItems] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const observer = useRef(null);
+
+  useEffect(() => {
+    const lastIndex = currentPage * itemsPerPage;
+    const newVisibleItems = items.slice(0, lastIndex);
+    setVisibleItems(newVisibleItems);
+  }, [currentPage]);
+
+  useEffect(() => {
+    const options = {
+      root: null,
+      rootMargin: "0px",
+      threshold: 1.0,
+    };
+
+    observer.current = new IntersectionObserver(handleObserver, options);
+
+    if (observer && observer.current) {
+      observer.current.observe(document.getElementById("observer"));
+    }
+
+    return () => {
+      if (observer && observer.current) {
+        observer.current.disconnect();
+      }
+    };
+  }, []);
+
+  const handleObserver = (entries) => {
+    const target = entries[0];
+
+    if (target.isIntersecting) {
+      setCurrentPage((prevPage) => prevPage + 1);
+      observer.current.unobserve(target.target);
+    }
+  };
+
   return (
     <div>
-        {/* Do not remove the main div */}
+      <ul>
+        {visibleItems.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </ul>
+      <div id="observer" style={{ height: "1px" }}></div>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
